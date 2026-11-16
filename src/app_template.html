@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="对话">
+<meta name="theme-color" content="#f4efe6">
+<title>Mandarin Dialogues</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4efe6; --card:#fffdf8; --ink:#1f1b16; --muted:#857a6b; --line:#e4dccd;
+  --red:#c2392b; --red-soft:#f6dcd6; --jade:#2f7d63; --jade-soft:#d7ece3; --gold:#c9932e;
+  --them:#ffffff; --me:#1f1b16; --meText:#fffdf8;
+  --zh:"Noto Serif SC","PingFang SC","Hiragino Sans GB","Songti SC",serif;
+  --ui:"Inter",-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);height:100%}
+body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:var(--paper);padding:12px 18px 10px;border-bottom:1px solid var(--line)}
+.toprow{display:flex;align-items:center;gap:10px}
+.brand{font-family:var(--zh);font-weight:700;font-size:20px;letter-spacing:.04em}
+.brand small{font-family:var(--ui);font-weight:500;font-size:12px;color:var(--muted);letter-spacing:0;margin-left:6px}
+.streak{margin-left:auto;display:flex;align-items:center;gap:5px;font-weight:700;font-size:15px}
+.streak svg{width:18px;height:18px}
+.goal{margin-top:10px}
+.goalbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.goalfill{height:100%;width:0;background:linear-gradient(90deg,var(--red),#e0644f);border-radius:99px;transition:width .4s}
+.goal.done .goalfill{background:linear-gradient(90deg,var(--jade),#46a383)}
+.goallbl{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+.banner{margin:10px 18px 0;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.4;background:#fff3d6;border:1px solid #ecd49a}
+.banner.err{background:var(--red-soft);border-color:#e7b2a8}
+
+/* tabs */
+.tabs{display:flex;gap:6px;padding:12px 18px 0}
+.tab{padding:8px 14px;border-radius:99px;font-weight:600;font-size:14px;color:var(--muted)}
+.tab.on{background:var(--ink);color:var(--paper)}
+
+/* home */
+.home{padding:14px 18px 40px}
+.cat{margin-bottom:22px}
+.cathead{display:flex;align-items:baseline;gap:8px;margin:0 0 10px}
+.cathead h2{margin:0;font-size:18px}
+.cathead .zh{font-family:var(--zh);color:var(--red);font-size:16px}
+.dlg{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:8px}
+.dlg .ic{width:42px;height:42px;border-radius:12px;background:var(--paper);display:grid;place-items:center;flex:none}
+.dlg .ic svg{width:28px;height:28px}
+.dlg .t{font-weight:600;font-size:15px}
+.dlg .s{font-family:var(--zh);color:var(--muted);font-size:14px;margin-top:2px}
+.dlg .meta{margin-left:auto;font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line);margin-left:3px}
+.dot.on{background:var(--jade)}
+
+/* dialogue screen */
+.dhead{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.back{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line)}
+.dtitle{font-weight:700;font-size:16px;line-height:1.2}
+.dtitle .zh{font-family:var(--zh);color:var(--red);font-weight:700;margin-left:6px}
+.ver{margin-left:auto;font-size:12px;font-weight:600;padding:6px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line)}
+.modes{display:flex;margin:0 14px;background:var(--line);border-radius:12px;padding:3px}
+.mode{flex:1;padding:8px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted)}
+.mode.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.feed{flex:1;padding:16px 12px 200px;display:flex;flex-direction:column;gap:12px}
+.empty{margin:auto;text-align:center;color:var(--muted);font-size:14px;padding:40px 20px;line-height:1.5}
+.who{font-size:11px;color:var(--muted);margin:0 6px 3px;font-weight:600;letter-spacing:.02em}
+.row{display:flex;flex-direction:column;align-items:flex-start;max-width:92%;animation:pop .25s ease-out}
+.row.me{align-self:flex-end;align-items:flex-end}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.bub{background:var(--them);border:1px solid var(--line);border-radius:18px 18px 18px 6px;padding:10px 12px 10px;min-width:220px}
+.me .bub{background:var(--me);color:var(--meText);border-color:var(--me);border-radius:18px 18px 6px 18px}
+.voice{display:flex;align-items:center;gap:10px}
+.pbtn{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--red);color:#fff}
+.me .pbtn{background:var(--paper);color:var(--ink)}
+.pbtn svg{width:14px;height:14px}
+.wave{position:relative;flex:1;height:30px}
+.bars{position:absolute;inset:0;display:flex;align-items:center;gap:2px}
+.bars i{flex:1;border-radius:2px;background:#d8cfbf;min-height:3px}
+.me .bars i{background:#5b5248}
+.bars.fill{clip-path:inset(0 100% 0 0)}
+.bars.fill i{background:var(--red)}
+.me .bars.fill i{background:var(--gold)}
+.dur{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;width:30px;text-align:right}
+.me .dur{color:#a99e8e}
+.txt{margin-top:8px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px 1px;line-height:1}
+.txt.hidden{display:none}
+.w{display:inline-flex;flex-direction:column;align-items:center;padding:3px 2px;border-radius:6px}
+.w .py{font-size:11px;color:var(--muted);margin-bottom:3px;white-space:nowrap;font-family:var(--ui)}
+.me .w .py{color:#b5aa99}
+.w .hz{font-family:var(--zh);font-size:21px;font-weight:500;letter-spacing:.02em}
+.w.tap:active,.w.sel{background:var(--red-soft)}
+.me .w.tap:active,.me .w.sel{background:#3a332b}
+.pu{font-family:var(--zh);font-size:21px;padding-bottom:3px}
+.hz .ok{color:var(--jade)} .hz .bad{color:var(--red);text-decoration:underline wavy}
+.src{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);padding:1px 4px;border-radius:4px}
+
+/* speak card */
+.speak{align-self:stretch;max-width:100%;background:var(--card);border:2px dashed var(--line);border-radius:18px;padding:14px;animation:pop .25s}
+.speak .lbl{font-size:12px;font-weight:700;color:var(--red);letter-spacing:.04em;margin-bottom:8px}
+.speak .heard{margin-top:10px;font-size:13px;color:var(--muted);min-height:18px}
+.speak .heard b{font-family:var(--zh);color:var(--ink);font-weight:500;font-size:16px}
+.speak .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn{padding:10px 14px;border-radius:12px;font-weight:600;font-size:14px;background:var(--paper);border:1px solid var(--line)}
+.btn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.mic{background:var(--red);color:#fff;border-color:var(--red);display:flex;align-items:center;gap:8px}
+.btn.mic.live{animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,57,43,.45)}100%{box-shadow:0 0 0 14px rgba(194,57,43,0)}}
+.score{font-weight:700;font-size:13px;margin-top:8px}
+.score.good{color:var(--jade)} .score.meh{color:var(--red)}
+
+/* dock */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:12px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--paper) 30%)}
+.dockin{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.side{width:84px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);font-weight:600}
+.side button{width:44px;height:44px;border-radius:14px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--ink)}
+.side svg{width:20px;height:20px}
+.big{width:76px;height:76px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;box-shadow:0 8px 24px rgba(194,57,43,.35)}
+.big svg{width:30px;height:30px}
+.big.mic{background:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+
+/* popover */
+.pop{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:120px;width:min(92vw,420px);background:var(--ink);color:var(--paper);border-radius:18px;padding:14px 16px;display:flex;gap:14px;align-items:center;box-shadow:0 12px 40px rgba(0,0,0,.3);animation:pop .18s}
+.pop .pic{width:58px;height:58px;flex:none;background:var(--paper);border-radius:14px;display:grid;place-items:center}
+.pop .pic svg{width:44px;height:44px}
+.pop .hz{font-family:var(--zh);font-size:26px;font-weight:700}
+.pop .py{color:#d8c9b0;font-size:14px;margin-left:8px}
+.pop .g{margin-top:4px;font-size:15px}
+.pop .say{margin-left:auto;width:40px;height:40px;border-radius:50%;background:#3a332b;display:grid;place-items:center;flex:none}
+.pop .say svg{width:18px;height:18px}
+
+/* words */
+.words{padding:14px 18px 40px}
+.wseg{display:flex;gap:6px;margin-bottom:14px}
+.wseg button{padding:7px 12px;border-radius:99px;border:1px solid var(--line);font-size:13px;font-weight:600;background:var(--card)}
+.wseg button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;min-height:340px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
+.card .pic svg{width:72px;height:72px}
+.card .big-hz{font-family:var(--zh);font-size:54px;font-weight:700;line-height:1.1}
+.card .cpy{font-size:20px;color:var(--red);font-weight:600}
+.card .cg{font-size:18px}
+.card .ex{margin-top:12px;padding-top:14px;border-top:1px solid var(--line);width:100%}
+.card .ex .txt{justify-content:center}
+.card .exen{font-size:13px;color:var(--muted);margin-top:8px}
+.card .hint{font-size:12px;color:var(--muted)}
+.wacts{display:flex;gap:10px;margin-top:14px}
+.wacts .btn{flex:1;padding:14px}
+.wstat{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+.foot{font-size:12px;color:var(--muted);text-align:center;padding:10px 18px 30px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const DATA = __DATA__;
+
+/* ---------- icons ---------- */
+const S = (b)=>`<svg viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+const ICONS = {
+ basket:S('<path d="M10 26h44l-5 26H15z" fill="#e9b949" stroke="#1f1b16" stroke-width="3"/><path d="M22 26l8-14M42 26l-8-14" stroke="#1f1b16" stroke-width="3"/><path d="M20 34v10M32 34v10M44 34v10" stroke="#1f1b16" stroke-width="2.5"/>'),
+ bowl:S('<path d="M8 30h48c0 12-10 20-24 20S8 42 8 30z" fill="#c2392b" stroke="#1f1b16" stroke-width="3"/><path d="M24 50h16" stroke="#1f1b16" stroke-width="3"/><path d="M36 8l12 18M44 6l8 20" stroke="#1f1b16" stroke-width="3"/><path d="M16 30c4-6 8-6 12 0 4-6 8-6 12 0 4-6 8-6 12 0" stroke="#fffdf8" stroke-width="2.5"/>'),
+ key:S('<rect x="12" y="16" width="40" height="28" rx="5" fill="#2f7d63" stroke="#1f1b16" stroke-width="3"/><path d="M20 26h14M20 33h8" stroke="#fffdf8" stroke-width="3"/><circle cx="44" cy="30" r="4" fill="#fffdf8"/>'),
+ wifi:S('<path d="M10 26c12-11 32-11 44 0M17 33c8-7 22-7 30 0M24 40c4-3 12-3 16 0" stroke="#1f1b16" stroke-width="4"/><circle cx="32" cy="47" r="4" fill="#c2392b"/>'),
+ mango:S('<path d="M18 40c-6-14 6-30 22-28 12 2 16 16 8 28-8 12-24 14-30 0z" fill="#f2a93b" stroke="#1f1b16" stroke-width="3"/><path d="M40 12c2-4 6-6 10-5" stroke="#2f7d63" stroke-width="3"/><path d="M28 22c-4 2-6 6-6 10" stroke="#fff3c4" stroke-width="3"/>'),
+ banana:S('<path d="M12 18c2 22 18 34 40 30-4-4-8-4-12-4-14 0-22-12-22-26z" fill="#f5d33f" stroke="#1f1b16" stroke-width="3"/><path d="M12 18l-2-6" stroke="#1f1b16" stroke-width="3"/>'),
+ watermelon:S('<path d="M8 24h48c0 16-11 26-24 26S8 40 8 24z" fill="#e2483d" stroke="#1f1b16" stroke-width="3"/><path d="M8 24c0 16 11 26 24 26s24-10 24-26" stroke="#2f7d63" stroke-width="5"/><circle cx="22" cy="32" r="1.8" fill="#1f1b16"/><circle cx="32" cy="36" r="1.8" fill="#1f1b16"/><circle cx="42" cy="32" r="1.8" fill="#1f1b16"/>'),
+ apple:S('<path d="M32 20c-10-6-22 0-20 14 2 14 12 22 20 18 8 4 18-4 20-18 2-14-10-20-20-14z" fill="#d6402f" stroke="#1f1b16" stroke-width="3"/><path d="M32 20c0-5 2-9 5-11" stroke="#1f1b16" stroke-width="3"/><path d="M36 14c5-2 9 0 10 3-5 2-8 1-10-3z" fill="#2f7d63" stroke="#1f1b16" stroke-width="2"/>'),
+ grapes:S('<g fill="#7b4fa0" stroke="#1f1b16" stroke-width="2.5"><circle cx="24" cy="24" r="7"/><circle cx="38" cy="24" r="7"/><circle cx="31" cy="35" r="7"/><circle cx="20" cy="37" r="6"/><circle cx="42" cy="37" r="6"/><circle cx="31" cy="48" r="6"/></g><path d="M31 17V8" stroke="#2f7d63" stroke-width="3"/>'),
+ cucumber:S('<rect x="8" y="24" width="48" height="16" rx="8" fill="#3f9a5d" stroke="#1f1b16" stroke-width="3" transform="rotate(-25 32 32)"/><g fill="#cfe9c8"><circle cx="24" cy="36" r="1.5"/><circle cx="32" cy="31" r="1.5"/><circle cx="40" cy="27" r="1.5"/></g>'),
+ potato:S('<path d="M12 34c0-12 10-20 22-18s20 8 18 18-12 16-24 14-16-6-16-14z" fill="#c9995b" stroke="#1f1b16" stroke-width="3"/><g fill="#8a6234"><circle cx="24" cy="30" r="1.8"/><circle cx="38" cy="26" r="1.8"/><circle cx="34" cy="40" r="1.8"/></g>'),
+ tofu:S('<path d="M10 26l14-10h30l-14 10z" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><path d="M10 26h30v22H10z" fill="#f4ecd8" stroke="#1f1b16" stroke-width="3"/><path d="M40 26l14-10v22L40 48z" fill="#e7dcc2" stroke="#1f1b16" stroke-width="3"/>'),
+ tomato:S('<circle cx="32" cy="36" r="18" fill="#e2483d" stroke="#1f1b16" stroke-width="3"/><path d="M22 20l10 4 10-4-4 6h-12z" fill="#2f7d63" stroke="#1f1b16" stroke-width="2"/>'),
+ eggplant:S('<path d="M44 14c6 6 4 16-4 24S20 54 14 48s2-18 10-26 14-14 20-8z" fill="#6b3f8e" stroke="#1f1b16" stroke-width="3"/><path d="M42 12l6-4M38 18c4-2 8-2 10 2" stroke="#2f7d63" stroke-width="4"/>'),
+ pepper:S('<path d="M20 24c-6 10-2 24 12 26 14-2 18-16 12-26-6-4-18-4-24 0z" fill="#3f9a5d" stroke="#1f1b16" stroke-width="3"/><path d="M32 22v-8" stroke="#1f1b16" stroke-width="4"/>'),
+ chili:S('<path d="M16 18c4 18 14 32 34 36-4-14-10-28-24-34z" fill="#d6402f" stroke="#1f1b16" stroke-width="3"/><path d="M16 18c-2-4 0-8 4-10M14 20c2-4 8-6 12-2" stroke="#2f7d63" stroke-width="4"/>'),
+ garlic:S('<path d="M32 12c-4 8-20 14-18 28 2 10 10 12 18 12s16-2 18-12c2-14-14-20-18-28z" fill="#f7f1e3" stroke="#1f1b16" stroke-width="3"/><path d="M32 22v28M24 30c-2 6-2 14 2 20M40 30c2 6 2 14-2 20" stroke="#cbbf9f" stroke-width="2"/>'),
+ egg:S('<path d="M32 10c-10 0-18 18-18 28s8 16 18 16 18-6 18-16-8-28-18-28z" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/>'),
+ rice:S('<path d="M8 32h48c0 12-10 18-24 18S8 44 8 32z" fill="#f4ecd8" stroke="#1f1b16" stroke-width="3"/><path d="M12 32c2-12 38-12 40 0" fill="#fff" stroke="#1f1b16" stroke-width="3"/>'),
+ noodles:S('<path d="M8 32h48c0 12-10 18-24 18S8 44 8 32z" fill="#c2392b" stroke="#1f1b16" stroke-width="3"/><path d="M20 32c0-8 4-14 4-22M28 32c0-8 2-14 2-22M36 32c0-8-2-14-2-22" stroke="#e9b949" stroke-width="3"/><path d="M42 30L54 8" stroke="#1f1b16" stroke-width="3"/>'),
+ water:S('<path d="M26 8h12v8l4 6v32a4 4 0 0 1-4 4H26a4 4 0 0 1-4-4V22l4-6z" fill="#cfe7f5" stroke="#1f1b16" stroke-width="3"/><path d="M22 30h20v14H22" fill="#5aa9d6"/>'),
+ coffee:S('<path d="M14 22h30v20a10 10 0 0 1-10 10H24a10 10 0 0 1-10-10z" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><path d="M44 28h4a6 6 0 0 1 0 12h-4" stroke="#1f1b16" stroke-width="3"/><path d="M22 10c-2 3 2 5 0 8M30 10c-2 3 2 5 0 8" stroke="#8a6234" stroke-width="2.5"/>'),
+ soup:S('<path d="M8 30h48c0 12-10 20-24 20S8 42 8 30z" fill="#e9b949" stroke="#1f1b16" stroke-width="3"/><path d="M22 22c-2-4 2-6 0-10M32 22c-2-4 2-6 0-10M42 22c-2-4 2-6 0-10" stroke="#857a6b" stroke-width="2.5"/>'),
+ fish:S('<path d="M8 32c8-12 28-14 40 0-12 14-32 12-40 0z" fill="#5aa9d6" stroke="#1f1b16" stroke-width="3"/><path d="M48 32l10-10v20z" fill="#5aa9d6" stroke="#1f1b16" stroke-width="3"/><circle cx="18" cy="30" r="2" fill="#1f1b16"/>'),
+ meat:S('<path d="M14 36c-4-12 8-24 22-22s20 14 14 24-30 12-36-2z" fill="#d6604f" stroke="#1f1b16" stroke-width="3"/><circle cx="32" cy="32" r="5" fill="#fffaf0" stroke="#1f1b16" stroke-width="2"/>'),
+ passport:S('<rect x="16" y="8" width="32" height="48" rx="4" fill="#7a2a24" stroke="#1f1b16" stroke-width="3"/><circle cx="32" cy="28" r="8" stroke="#e9b949" stroke-width="2.5"/><path d="M24 44h16" stroke="#e9b949" stroke-width="2.5"/>'),
+ elevator:S('<rect x="12" y="8" width="40" height="48" rx="3" fill="#d8cfbf" stroke="#1f1b16" stroke-width="3"/><path d="M32 8v48" stroke="#1f1b16" stroke-width="3"/><path d="M22 22l4-5 4 5M34 17l4 5 4-5" stroke="#c2392b" stroke-width="3"/>'),
+ towel:S('<rect x="14" y="10" width="36" height="44" rx="4" fill="#f6dcd6" stroke="#1f1b16" stroke-width="3"/><path d="M14 42h36M14 46h36" stroke="#c2392b" stroke-width="2.5"/>'),
+ ac:S('<rect x="6" y="14" width="52" height="20" rx="5" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><path d="M12 28h40" stroke="#1f1b16" stroke-width="2.5"/><path d="M18 40c-2 4 2 6 0 10M32 40c-2 4 2 6 0 10M46 40c-2 4 2 6 0 10" stroke="#5aa9d6" stroke-width="3"/>'),
+ luggage:S('<rect x="14" y="18" width="36" height="36" rx="5" fill="#c9932e" stroke="#1f1b16" stroke-width="3"/><path d="M24 18V10h16v8M24 18v36M40 18v36" stroke="#1f1b16" stroke-width="3"/><circle cx="22" cy="58" r="2.5" fill="#1f1b16"/><circle cx="42" cy="58" r="2.5" fill="#1f1b16"/>'),
+ taxi:S('<path d="M8 40V32l6-12h36l6 12v8z" fill="#f5d33f" stroke="#1f1b16" stroke-width="3"/><rect x="26" y="12" width="12" height="6" rx="1" fill="#1f1b16"/><circle cx="18" cy="42" r="5" fill="#1f1b16"/><circle cx="46" cy="42" r="5" fill="#1f1b16"/><path d="M18 30h28" stroke="#1f1b16" stroke-width="2.5"/>'),
+ metro:S('<rect x="12" y="8" width="40" height="40" rx="8" fill="#5aa9d6" stroke="#1f1b16" stroke-width="3"/><rect x="18" y="14" width="28" height="14" rx="2" fill="#fffaf0" stroke="#1f1b16" stroke-width="2"/><circle cx="22" cy="38" r="3" fill="#fffaf0"/><circle cx="42" cy="38" r="3" fill="#fffaf0"/><path d="M18 56l6-8M46 56l-6-8" stroke="#1f1b16" stroke-width="3"/>'),
+ plane:S('<path d="M8 36l20-4 14-20c2-3 6-2 5 2l-6 18 15 4-2 4-15-1-4 13h-5l1-13-20-1z" fill="#d8cfbf" stroke="#1f1b16" stroke-width="3"/>'),
+ train:S('<rect x="14" y="8" width="36" height="40" rx="10" fill="#c2392b" stroke="#1f1b16" stroke-width="3"/><rect x="20" y="16" width="24" height="12" rx="2" fill="#fffaf0" stroke="#1f1b16" stroke-width="2"/><circle cx="24" cy="38" r="3" fill="#fffaf0"/><circle cx="40" cy="38" r="3" fill="#fffaf0"/><path d="M8 58h48" stroke="#1f1b16" stroke-width="3"/>'),
+ phone:S('<rect x="18" y="6" width="28" height="52" rx="6" fill="#1f1b16"/><rect x="22" y="12" width="20" height="36" rx="2" fill="#cfe7f5"/><circle cx="32" cy="53" r="2" fill="#fffaf0"/>'),
+ hotspot:S('<rect x="22" y="22" width="20" height="36" rx="4" fill="#1f1b16"/><path d="M16 18c8-8 24-8 32 0M22 12c6-4 14-4 20 0" stroke="#c2392b" stroke-width="3.5"/>'),
+ battery:S('<rect x="8" y="20" width="44" height="24" rx="4" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><rect x="52" y="27" width="5" height="10" rx="1" fill="#1f1b16"/><rect x="12" y="24" width="8" height="16" rx="1" fill="#c2392b"/>'),
+ plug:S('<rect x="18" y="20" width="28" height="24" rx="5" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><path d="M26 20V8M38 20V8" stroke="#1f1b16" stroke-width="4"/><path d="M32 44v12" stroke="#1f1b16" stroke-width="4"/>'),
+ cash:S('<rect x="6" y="18" width="52" height="28" rx="3" fill="#d6402f" stroke="#1f1b16" stroke-width="3"/><circle cx="32" cy="32" r="7" fill="#f6dcd6" stroke="#1f1b16" stroke-width="2"/><text x="32" y="36" font-size="10" font-weight="700" text-anchor="middle" fill="#1f1b16">¥</text>'),
+ qr:S('<rect x="8" y="8" width="48" height="48" rx="6" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><g fill="#1f1b16"><rect x="14" y="14" width="12" height="12"/><rect x="38" y="14" width="12" height="12"/><rect x="14" y="38" width="12" height="12"/><rect x="32" y="32" width="5" height="5"/><rect x="40" y="40" width="5" height="5"/><rect x="45" y="32" width="5" height="5"/><rect x="32" y="45" width="5" height="5"/></g>'),
+ bag:S('<path d="M14 22h36l-3 34H17z" fill="#d8cfbf" stroke="#1f1b16" stroke-width="3"/><path d="M24 22v-4a8 8 0 0 1 16 0v4" stroke="#1f1b16" stroke-width="3"/>'),
+ box:S('<path d="M10 24l22-10 22 10-22 10z" fill="#e9c88b" stroke="#1f1b16" stroke-width="3"/><path d="M10 24v20l22 10V34zM54 24v20L32 54V34z" fill="#c9932e" stroke="#1f1b16" stroke-width="3"/>'),
+ wc:S('<rect x="8" y="8" width="48" height="48" rx="8" fill="#2f7d63"/><text x="32" y="41" font-size="22" font-weight="800" text-anchor="middle" fill="#fffdf8" font-family="Inter,sans-serif">WC</text>'),
+ menu:S('<rect x="14" y="8" width="36" height="48" rx="4" fill="#fffaf0" stroke="#1f1b16" stroke-width="3"/><path d="M22 20h20M22 28h20M22 36h14M22 44h18" stroke="#c2392b" stroke-width="3"/>'),
+ greens:S('<path d="M32 56c-2-14-4-30-18-40 4 18 8 30 18 40zM32 56c2-14 4-30 18-40-4 18-8 30-18 40zM32 56V20" fill="#3f9a5d" stroke="#1f1b16" stroke-width="3"/>'),
+ riceball:S('<path d="M32 10L54 50H10z" fill="#fffaf0" stroke="#1f1b16" stroke-width="3" stroke-linejoin="round"/><rect x="22" y="36" width="20" height="14" fill="#1f1b16"/>'),
+ fridge:S('<rect x="16" y="6" width="32" height="52" rx="4" fill="#cfe7f5" stroke="#1f1b16" stroke-width="3"/><path d="M16 24h32M22 14v4M22 30v8" stroke="#1f1b16" stroke-width="3"/>'),
+ card:S('<rect x="6" y="16" width="52" height="32" rx="5" fill="#2f5d8a" stroke="#1f1b16" stroke-width="3"/><path d="M6 26h52" stroke="#1f1b16" stroke-width="5"/><rect x="12" y="34" width="14" height="6" rx="1" fill="#e9b949"/>'),
+ sim:S('<path d="M18 8h20l10 10v38H18z" fill="#e9b949" stroke="#1f1b16" stroke-width="3"/><rect x="24" y="28" width="18" height="18" rx="2" fill="#c9932e" stroke="#1f1b16" stroke-width="2"/>'),
+ tissue:S('<rect x="10" y="28" width="44" height="24" rx="3" fill="#cfe7f5" stroke="#1f1b16" stroke-width="3"/><path d="M26 28c0-10 4-16 10-18-2 6 0 12 4 18" fill="#fffaf0" stroke="#1f1b16" stroke-width="2.5"/>'),
+};
+const WORD_ICON = {"芒果":"mango","香蕉":"banana","西瓜":"watermelon","苹果":"apple","葡萄":"grapes","水果":"apple","黄瓜":"cucumber","拍黄瓜":"cucumber",
+"土豆":"potato","土豆丝":"potato","豆腐":"tofu","嫩豆腐":"tofu","老豆腐":"tofu","麻婆豆腐":"tofu","西红柿":"tomato","西红柿炒鸡蛋":"tomato","茄子":"eggplant",
+"青椒":"pepper","辣椒":"chili","辣":"chili","微辣":"chili","少辣":"chili","加辣":"chili","吃辣":"chili","辣不辣":"chili","水煮鱼":"fish","蒜":"garlic","鸡蛋":"egg",
+"米饭":"rice","面":"noodles","水":"water","冰水":"water","咖啡":"coffee","汤":"soup","鸡汤":"soup","鱼":"fish","肉":"meat","肉末":"meat","护照":"passport",
+"房卡":"key","电梯":"elevator","毛巾":"towel","空调":"ac","行李":"luggage","出租车":"taxi","地铁":"metro","飞机":"plane","机场":"plane","火车站":"train",
+"WiFi":"wifi","网":"wifi","网速":"wifi","密码":"wifi","热点":"hotspot","手机":"phone","充电宝":"battery","没电":"battery","充电":"battery","插座":"plug",
+"插头":"plug","转换插头":"plug","充电器":"plug","充电线":"plug","现金":"cash","零钱":"cash","钱":"cash","一百块":"cash","付钱":"cash","微信支付":"qr","扫码":"qr",
+"码":"qr","扫码点菜":"qr","支付宝":"qr","袋子":"bag","盒子":"box","打包":"box","洗手间":"wc","菜单":"menu","空心菜":"greens","炒青菜":"greens","素菜":"greens",
+"菜":"greens","吃素":"greens","饭团":"riceball","冰柜":"fridge","冰箱":"fridge","刷卡":"card","手机卡":"sim","电话卡":"sim","纸巾":"tissue","地三鲜":"eggplant",
+"宫保鸡丁":"meat","大床房":"key","入住":"key","退房":"luggage","寄存":"luggage","热水":"water"};
+const CAT_ICON = {fruit:"mango",market:"cucumber",store:"riceball",order:"chili",veggie:"greens",bill:"cash",checkin:"key",problem:"ac",checkout:"luggage",wifi:"wifi",hotspot:"hotspot",battery:"battery"};
+const UI = {
+ play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z"/></svg>',
+ pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>',
+ mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+ back:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
+ flame:'<svg viewBox="0 0 24 24"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z" fill="#c2392b"/><path d="M12 13c1 2 3 3 3 5a3 3 0 0 1-6 0c0-1 1-2 1-3 1 1 2 0 2-2z" fill="#e9b949"/></svg>',
+ restart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4"/></svg>',
+ eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+ eyeoff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C3.8 8.4 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4.4-1.1"/></svg>',
+ speaker:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>',
+};
+
+/* ---------- storage (visible failures) ---------- */
+const GOAL_MS = 30*60*1000;
+const KEY = 'zh-dialogues-v1';
+let storageOK = true, storageErr = '';
+function loadState(){
+  try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(s) return s; }
+  catch(e){ storageOK=false; storageErr = String(e && e.message || e); }
+  return {days:{}, ver:{}, done:{}, cards:{}};
+}
+let ST = loadState();
+ST.days ||= {}; ST.ver ||= {}; ST.done ||= {}; ST.cards ||= {};
+let saveTimer=null, dbRef=null, dbDoc=null;
+function save(now){
+  clearTimeout(saveTimer);
+  const go=()=>{
+    try{ localStorage.setItem(KEY, JSON.stringify(ST)); storageOK=true; }
+    catch(e){ storageOK=false; storageErr=String(e && e.message || e); renderBanner(); }
+    if(dbDoc){ dbDoc.set({state: JSON.stringify(ST), at: Date.now()}).catch(e=>{ dbErr = 'Cloud save failed: '+(e && (e.code||e.message)||e); renderBanner(); }); }
+  };
+  if(now) go(); else saveTimer=setTimeout(go, 1500);
+}
+let dbErr='';
+// Optional cloud sync when hosted on claude.ai (merges by max per day)
+(async()=>{
+  try{
+    if(!window.claude || !claude.use) return;
+    const db = await claude.use('db'); const user = await claude.use('user');
+    if(!db || !user) return;
+    const id = await user.id();
+    dbDoc = db.collection('data/users/'+id).doc('progress');
+    const snap = await dbDoc.get();
+    const remote = snap && (snap.data ? snap.data() : snap);
+    if(remote && remote.state){
+      const r = JSON.parse(remote.state);
+      for(const [d,ms] of Object.entries(r.days||{})) ST.days[d] = Math.max(ST.days[d]||0, ms);
+      Object.assign(ST.done, r.done||{}); ST.ver = {...(r.ver||{}), ...ST.ver}; ST.cards = {...(r.cards||{}), ...ST.cards};
+      save(true); render();
+    } else save(true);
+  }catch(e){ dbErr = 'Cloud sync unavailable: '+(e && (e.code||e.message)||e); renderBanner(); }
+})();
+
+const dayKey = (d=new Date()) => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function todayMs(){ return ST.days[dayKey()]||0; }
+function streak(){
+  let n=0; const d=new Date();
+  if((ST.days[dayKey(d)]||0) >= GOAL_MS) n=1;
+  d.setDate(d.getDate()-1);
+  while((ST.days[dayKey(d)]||0) >= GOAL_MS){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function addTime(ms){
+  if(ms<=0||ms>5000) return;
+  const k=dayKey(); const before = ST.days[k]||0; ST.days[k]=before+ms; save();
+  updateGoal(before < GOAL_MS && ST.days[k] >= GOAL_MS);
+}
+
+/* ---------- active-time clock: counts only while audio plays or mic listens ---------- */
+let active = 0, lastTick = performance.now();
+setInterval(()=>{ const n=performance.now(); if(active>0) addTime(n-lastTick); lastTick=n; }, 250);
+const busy = { on(){ active++; }, off(){ active=Math.max(0,active-1); } };
+
+/* ---------- audio: recorded mp3 first, phone voice as fallback ---------- */
+const audioCache = {};   // id -> {ok:bool, url, peaks, dur}
+// audio/manifest.json lists which recorded clips exist (written by the audio script)
+let AUDIO_SET = null;
+const manifestReady = fetch('audio/manifest.json',{cache:'no-cache'}).then(r=>r.ok?r.json():[]).then(a=>{ AUDIO_SET=new Set(a); }).catch(()=>{ AUDIO_SET=new Set(); });
+let RATE = 1;
+function hashPeaks(id, n=34){ let h=0; for(const c of id) h=(h*31+c.charCodeAt(0))>>>0; const a=[]; for(let i=0;i<n;i++){ h=(h*1103515245+12345)>>>0; const env=Math.sin(Math.PI*(i+.5)/n)**.6; a.push(.25+.75*env*((h>>>8)%1000)/1000); } return a; }
+async function probe(line){
+  if(audioCache[line.id]) return audioCache[line.id];
+  const url = 'audio/'+line.id+'.mp3';
+  const rec = {ok:false, url, peaks: hashPeaks(line.id), dur: estDur(line.t)};
+  audioCache[line.id]=rec;
+  await manifestReady;
+  if(!AUDIO_SET.has(line.id)) return rec;
+  try{
+    const r = await fetch(url, {cache:'force-cache'});
+    if(!r.ok) showToast('Recorded clip missing on server: '+line.id+' — using phone voice.');
+    if(r.ok){
+      const buf = await r.arrayBuffer();
+      rec.ok = true; rec.blob = URL.createObjectURL(new Blob([buf],{type:'audio/mpeg'}));
+      try{
+        const AC = window.AudioContext||window.webkitAudioContext; const ac = new AC();
+        const ab = await new Promise((res,rej)=>ac.decodeAudioData(buf.slice(0),res,rej));
+        rec.dur = ab.duration; const ch = ab.getChannelData(0); const n=34, step=Math.floor(ch.length/n); const p=[];
+        for(let i=0;i<n;i++){ let m=0; for(let j=i*step;j<(i+1)*step;j+=16){ const v=Math.abs(ch[j]); if(v>m) m=v; } p.push(m); }
+        const mx=Math.max(...p)||1; rec.peaks=p.map(v=>.15+.85*v/mx); ac.close&&ac.close();
+      }catch(e){}
+    }
+  }catch(e){}
+  return rec;
+}
+function estDur(t){ const n=[...t].filter(c=>/[一-鿿]/.test(c)).length; return .6 + n*.26; }
+
+let zhVoices = [];
+function loadVoices(){ try{ zhVoices = speechSynthesis.getVoices().filter(v=>/^zh[-_](CN|Hans)/i.test(v.lang) || v.lang==='zh'); }catch(e){} }
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function pickVoice(kind){
+  if(!zhVoices.length) return null;
+  const male = zhVoices.find(v=>/li-?mu|yu-?shu|male|男|kangkang|yunxi|yunyang/i.test(v.name) && !/female/i.test(v.name));
+  const fem  = zhVoices.find(v=>/ting-?ting|female|女|xiaoxiao|huihui|yaoyao|meijia|shanshan/i.test(v.name)) || zhVoices[0];
+  return kind==='f' ? fem : (male || zhVoices[zhVoices.length>1?1:0]);
+}
+
+let current = null; // {stop()}
+function stopAudio(){ if(current){ current.stop(); current=null; } }
+// plays one line; onProg(0..1); resolves true when finished, false when stopped
+function playLine(line, onProg){
+  stopAudio();
+  return new Promise(async resolve=>{
+    const rec = await probe(line);
+    let done=false, raf=0;
+    const finish=(ok)=>{ if(done) return; done=true; cancelAnimationFrame(raf); busy.off(); onProg && onProg(ok?1:null); resolve(ok); };
+    busy.on();
+    if(rec.ok){
+      const a = new Audio(rec.blob); a.playbackRate = RATE; a.preservesPitch = true;
+      const tick=()=>{ if(a.duration) onProg && onProg(a.currentTime/a.duration); raf=requestAnimationFrame(tick); };
+      a.onended=()=>finish(true); a.onerror=()=>{ showToast('Audio file failed to play: '+line.id); finish(false); };
+      current={stop(){ a.pause(); finish(false); }};
+      a.play().then(tick).catch(e=>{ showToast('Playback blocked: '+(e.message||e)); finish(false); });
+    } else {
+      if(!('speechSynthesis' in window)){ showToast('No audio file and no speech voice on this device.'); finish(false); return; }
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(line.t);
+      u.lang='zh-CN'; const v=pickVoice(line.v==='me'?'m':line.v); if(v) u.voice=v;
+      u.rate = .92*RATE; if(!v || (line.v!=='f' && v===pickVoice('f'))) u.pitch = line.v==='f'?1.15:.85;
+      const est = rec.dur/RATE*1000, t0=performance.now();
+      const tick=()=>{ onProg && onProg(Math.min(.97,(performance.now()-t0)/est)); raf=requestAnimationFrame(tick); };
+      u.onend=()=>finish(true); u.onerror=(e)=>{ if(e.error!=='interrupted' && e.error!=='canceled') showToast('Speech voice error: '+e.error); finish(false); };
+      current={stop(){ speechSynthesis.cancel(); finish(false); }};
+      speechSynthesis.speak(u); tick();
+    }
+  });
+}
+function speakWord(text){ playLine({id:'w_'+text, t:text, v:'f'}, null); }
+
+/* ---------- speech recognition ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let dictation = null; // claude.ai capability (Chromium only)
+(async()=>{ try{ if(window.claude && claude.use){ dictation = await claude.use('dictation'); if(dictation) render(); } }catch(e){} })();
+function micAvailable(){ return !!SR || !!dictation; }
+function listen(onPartial){
+  return new Promise((resolve,reject)=>{
+    let text='';
+    if(SR){
+      const r = new SR(); r.lang='zh-CN'; r.interimResults=true; r.continuous=false; r.maxAlternatives=3;
+      busy.on(); let ended=false;
+      const end=()=>{ if(ended) return; ended=true; busy.off(); };
+      r.onresult=(e)=>{ let s=''; for(const res of e.results) s+=res[0].transcript; text=s; onPartial(s); };
+      r.onerror=(e)=>{ end(); reject(new Error(e.error==='not-allowed'?'Microphone or speech recognition not allowed. On iPhone: Settings → Safari → Microphone, and Siri & Dictation must be on.':
+        e.error==='no-speech'?'Didn\'t hear anything — try again a bit louder.':'Recognition error: '+e.error)); };
+      r.onend=()=>{ end(); resolve(text); };
+      listen.stop=()=>{ try{ r.stop(); }catch(e){} };
+      try{ r.start(); }catch(e){ end(); reject(e); }
+    } else if(dictation){
+      busy.on(); let ended=false; const end=()=>{ if(!ended){ ended=true; busy.off(); } };
+      dictation.onPartial(({text:t})=>onPartial(text+t));
+      dictation.onFinal(({text:t})=>{ text+=t; onPartial(text); });
+      dictation.onState(({state})=>{ if(state==='idle'){ end(); resolve(text); } });
+      listen.stop=()=>dictation.stop().catch(()=>{});
+      dictation.start().catch(e=>{ end(); reject(new Error(e && e.code==='not_granted'?'Dictation not allowed.':'Dictation failed: '+(e && (e.code||e.message)||e))); });
+    } else reject(new Error('No speech recognition here.'));
+  });
+}
+const CN_DIG='零一二三四五六七八九';
+function numToCn(n){
+  n=parseInt(n,10); if(isNaN(n)) return '';
+  if(n<10) return CN_DIG[n];
+  if(n<20) return '十'+(n%10?CN_DIG[n%10]:'');
+  if(n<100) return CN_DIG[Math.floor(n/10)]+'十'+(n%10?CN_DIG[n%10]:'');
+  if(n<1000){ const h=Math.floor(n/100), r=n%100; return CN_DIG[h]+'百'+(r===0?'':(r<10?'零'+CN_DIG[r]:(r<20?'一十'+(r%10?CN_DIG[r%10]:''):numToCn(r)))); }
+  return String(n).split('').map(d=>CN_DIG[+d]).join('');
+}
+function norm(s){
+  return s.replace(/\d+(\.\d+)?/g,m=>{ if(m.includes('.')){ const [a,b]=m.split('.'); return numToCn(a)+'块'+numToCn(b); } return numToCn(m); })
+          .replace(/[^一-鿿A-Za-z0-9]/g,'').replace(/两/g,'二').replace(/幺/g,'一');
+}
+function digitsAlt(s){ return s.replace(/\d/g,d=>CN_DIG[+d]); }
+// LCS alignment → which target chars were matched
+function grade(target, heard){
+  const best = [norm(heard), digitsAlt(heard).replace(/[^一-鿿A-Za-z]/g,'').replace(/两/g,'二')]
+    .map(h=>align(target, h)).sort((a,b)=>b.score-a.score)[0];
+  return best;
+}
+function align(target, h){
+  const T=[...target]; const idx=[]; const tc=[];
+  T.forEach((c,i)=>{ if(/[一-鿿A-Za-z0-9]/.test(c)){ idx.push(i); tc.push(c==='两'?'二':c); } });
+  const H=[...h]; const n=tc.length, m=H.length;
+  const dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for(let i=n-1;i>=0;i--) for(let j=m-1;j>=0;j--) dp[i][j]= tc[i]===H[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+  const ok=new Set(); let i=0,j=0; while(i<n&&j<m){ if(tc[i]===H[j]){ ok.add(idx[i]); i++; j++; } else if(dp[i+1][j]>=dp[i][j+1]) i++; else j++; }
+  return {ok, score: n? ok.size/n : 0};
+}
+
+/* ---------- toast ---------- */
+let toastT=null;
+function showToast(msg){
+  let el=document.getElementById('toast');
+  if(!el){ el=document.createElement('div'); el.id='toast'; el.className='banner err'; el.style.cssText='position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:99;margin:0'; document.body.appendChild(el); }
+  el.textContent=msg; el.style.display='block'; clearTimeout(toastT); toastT=setTimeout(()=>el.style.display='none', 6000);
+}
+
+/* ---------- views ---------- */
+const $app = document.getElementById('app');
+let VIEW = {name:'home', tab:'dialogues'};
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fmtMin(ms){ return Math.floor(ms/60000)+':'+String(Math.floor(ms/1000)%60).padStart(2,'0'); }
+
+function topHTML(){
+  const ms=todayMs(), pct=Math.min(100, ms/GOAL_MS*100), s=streak();
+  return `<div class="top"><div class="toprow"><div class="brand">对话<small>Mandarin dialogues</small></div>
+    <div class="streak" title="Days in a row with 30 minutes">${UI.flame}<span id="streakN">${s}</span></div></div>
+    <div class="goal ${ms>=GOAL_MS?'done':''}" id="goal"><div class="goalbar"><div class="goalfill" id="goalfill" style="width:${pct}%"></div></div>
+    <div class="goallbl"><span id="goaltxt">${ms>=GOAL_MS?'Goal reached today':'Today — listening + speaking'}</span><span id="goalnum">${fmtMin(ms)} / 30:00</span></div></div></div>
+    <div id="bannerSlot"></div>`;
+}
+function updateGoal(justDone){
+  const ms=todayMs(), f=document.getElementById('goalfill'); if(!f) return;
+  f.style.width=Math.min(100,ms/GOAL_MS*100)+'%';
+  document.getElementById('goalnum').textContent=fmtMin(Math.min(ms,GOAL_MS*9))+' / 30:00';
+  document.getElementById('goal').classList.toggle('done', ms>=GOAL_MS);
+  if(ms>=GOAL_MS) document.getElementById('goaltxt').textContent='Goal reached today';
+  document.getElementById('streakN').textContent=streak();
+  if(justDone){ save(true); showToast('30 minutes done — streak: '+streak()+' 🔥'); document.getElementById('toast').className='banner'; }
+}
+function renderBanner(){
+  const slot=document.getElementById('bannerSlot'); if(!slot) return;
+  const msgs=[];
+  if(!storageOK) msgs.push(`<div class="banner err"><b>Progress is NOT being saved</b> on this device (${esc(storageErr)}). Your streak will reset when you close the page.</div>`);
+  if(dbErr) msgs.push(`<div class="banner err">${esc(dbErr)}</div>`);
+  slot.innerHTML=msgs.join('');
+}
+
+function render(){
+  if(VIEW.name==='dialogue') return renderDialogue();
+  $app.innerHTML = topHTML() + `<div class="tabs"><button class="tab ${VIEW.tab==='dialogues'?'on':''}" data-tab="dialogues">Dialogues</button><button class="tab ${VIEW.tab==='words'?'on':''}" data-tab="words">Flashcards</button></div>`
+    + (VIEW.tab==='dialogues' ? homeHTML() : wordsHTML());
+  renderBanner();
+  $app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{ VIEW.tab=b.dataset.tab; render(); });
+  $app.querySelectorAll('[data-dlg]').forEach(b=>b.onclick=()=>openDialogue(b.dataset.cat, b.dataset.dlg));
+  if(VIEW.tab==='words') bindWords();
+}
+function homeHTML(){
+  return `<div class="home">`+DATA.categories.map(c=>`<div class="cat"><div class="cathead"><h2>${esc(c.title)}</h2><span class="zh">${c.zh}</span></div>`+
+    c.dialogues.map(d=>{ const key=c.id+'/'+d.id; const dots=d.versions.map((_,i)=>`<span class="dot ${ST.done[key+'#'+i]?'on':''}"></span>`).join('');
+      return `<button class="dlg" data-cat="${c.id}" data-dlg="${d.id}"><span class="ic">${ICONS[CAT_ICON[d.id]]||''}</span><span><div class="t">${esc(d.title)}</div><div class="s">${d.zh}</div></span><span class="meta">${d.versions.length} versions<br>${dots}</span></button>`;}).join('')+`</div>`).join('')
+    + `</div><div class="foot">Tap any word for its meaning. Versions rotate each time you open a dialogue.</div>`;
+}
+
+/* ---------- dialogue ---------- */
+let D=null; // session
+function openDialogue(catId, dlgId){
+  const cat=DATA.categories.find(c=>c.id===catId), dlg=cat.dialogues.find(d=>d.id===dlgId), key=catId+'/'+dlgId;
+  const last = ST.ver[key]; const vi = (last===undefined ? 0 : (last+1) % dlg.versions.length);
+  ST.ver[key]=vi; save();
+  D={cat, dlg, key, vi, mode: D && D.mode || 'listen', shown:0, playing:false, runId:0, hideText: D && D.hideText || false};
+  VIEW={name:'dialogue', tab:VIEW.tab}; renderDialogue();
+  dlg.versions[vi].forEach(l=>probe(l));
+}
+function lines(){ return D.dlg.versions[D.vi]; }
+function tokHTML(line, marks){
+  return line.tok.map((t,i)=>{
+    if(t.punct) return `<span class="pu">${esc(t.w)}</span>`;
+    return `<span class="w tap" data-i="${i}"><span class="py">${esc(t.p)}</span><span class="hz">${esc(t.w)}</span></span>`;
+  }).join('');
+}
+function bubbleHTML(line, n){
+  const rec=audioCache[line.id]; const peaks=(rec&&rec.peaks)||hashPeaks(line.id); const bars=peaks.map(p=>`<i style="height:${Math.round(p*100)}%"></i>`).join('');
+  const me=line.s==='B'; const who = me?'You':(D.dlg.zh.length? 'Them':'Them');
+  return `<div class="row ${me?'me':''}" data-n="${n}"><div class="who">${me?'You':'Them'}</div><div class="bub">
+    <div class="voice"><button class="pbtn" data-play="${n}">${UI.play}</button><div class="wave"><div class="bars">${bars}</div><div class="bars fill">${bars}</div></div>
+    <span class="dur">${(rec?rec.dur:estDur(line.t)).toFixed(0)}s</span></div>
+    <div class="txt ${D.hideText?'hidden':''}">${tokHTML(line)}</div>
+    ${rec && !rec.ok ? '<div style="display:flex;margin-top:6px"><span class="src" title="No recorded audio yet — phone voice">PHONE VOICE</span></div>':''}</div></div>`;
+}
+function renderDialogue(){
+  const L=lines();
+  $app.innerHTML = topHTML() + `<div class="dhead"><button class="back" id="back">${UI.back}</button>
+    <div class="dtitle">${esc(D.dlg.title)}<span class="zh">${D.dlg.zh}</span></div>
+    <button class="ver" id="ver" title="Next version">v${D.vi+1}/${D.dlg.versions.length} ↻</button></div>
+    <div class="modes"><button class="mode ${D.mode==='listen'?'on':''}" data-mode="listen">Listen</button><button class="mode ${D.mode==='talk'?'on':''}" data-mode="talk">Interactive</button></div>
+    ${D.mode==='talk' && !micAvailable() ? `<div class="banner">Speech recognition isn't available in this view, so your lines can't be checked here. Say them out loud and tap <b>I said it</b>. Open the GitHub Pages version in Safari for checking.</div>`:''}
+    <div class="feed" id="feed">${D.shown? L.slice(0,D.shown).map((l,i)=>bubbleHTML(l,i)).join('') : `<div class="empty">${D.mode==='listen'?'Press play — the conversation arrives as voice messages.':'You are the traveller. When it\'s your turn, read your line out loud.'}</div>`}</div>
+    <div class="dock"><div class="dockin">
+      <div class="side"><button id="spd">${RATE===1?'1×':RATE+'×'}</button>speed</div>
+      <button class="big" id="big">${D.playing?UI.pause:UI.play}</button>
+      <div class="side"><button id="hide">${D.hideText?UI.eyeoff:UI.eye}</button>${D.hideText?'text off':'text'}</div>
+    </div></div>`;
+  renderBanner();
+  document.getElementById('back').onclick=()=>{ stopRun(); VIEW={name:'home',tab:VIEW.tab}; render(); };
+  document.getElementById('ver').onclick=()=>{ stopRun(); openDialogue(D.cat.id, D.dlg.id); };
+  $app.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{ stopRun(); D.mode=b.dataset.mode; D.shown=0; renderDialogue(); });
+  document.getElementById('spd').onclick=()=>{ RATE = RATE===1?.8:RATE===.8?.65:1; renderDialogue(); };
+  document.getElementById('hide').onclick=()=>{ D.hideText=!D.hideText; document.querySelectorAll('.feed .txt').forEach(t=>t.classList.toggle('hidden',D.hideText)); renderDialogue(); };
+  document.getElementById('big').onclick=()=>{ if(D.playing) stopRun(); else run(); };
+  bindFeed(document.getElementById('feed'));
+}
+function bindFeed(feed){
+  feed.onclick=(e)=>{
+    const pb=e.target.closest('[data-play]');
+    if(pb){ stopRun(); const n=+pb.dataset.play; playBubble(n); return; }
+    const w=e.target.closest('.w.tap');
+    if(w){ const row=w.closest('[data-n]'); const line = row? lines()[+row.dataset.n] : (D.speakLine); showWord(line.tok[+w.dataset.i], w); }
+  };
+}
+function rowEl(n){ return document.querySelector(`.row[data-n="${n}"]`); }
+function setProg(n,p){ const r=rowEl(n); if(!r) return; const f=r.querySelector('.bars.fill'); if(p===null) p=0; f.style.clipPath=`inset(0 ${100-p*100}% 0 0)`; const b=r.querySelector('.pbtn'); b.innerHTML = (p>0&&p<1)?UI.pause:UI.play; }
+async function playBubble(n){ const l=lines()[n]; const r=await playLine(l, p=>setProg(n,p)); }
+function appendBubble(n){
+  const feed=document.getElementById('feed'); const em=feed.querySelector('.empty'); if(em) em.remove();
+  feed.insertAdjacentHTML('beforeend', bubbleHTML(lines()[n], n)); D.shown=Math.max(D.shown,n+1);
+  rowEl(n).scrollIntoView({behavior:'smooth', block:'end'});
+}
+function setBig(){ const b=document.getElementById('big'); if(b) b.innerHTML=D.playing?UI.pause:UI.play; }
+function stopRun(){ if(!D) return; D.runId++; D.playing=false; stopAudio(); if(listen.stop) listen.stop(); setBig(); }
+async function run(){
+  const L=lines(); const my=++D.runId; D.playing=true; setBig();
+  if(D.shown>=L.length){ D.shown=0; document.getElementById('feed').innerHTML=''; }
+  for(let n=D.shown; n<L.length; n++){
+    if(my!==D.runId) return;
+    const line=L[n];
+    if(D.mode==='talk' && line.s==='B'){
+      const ok = await speakTurn(line, n, my); if(!ok || my!==D.runId) return;
+      continue;
+    }
+    appendBubble(n);
+    await probe(line); if(my!==D.runId) return;
+    const r=rowEl(n); if(r){ const rec=audioCache[line.id]; r.querySelector('.dur').textContent=rec.dur.toFixed(0)+'s'; }
+    const fin = await playLine(line, p=>setProg(n,p));
+    if(my!==D.runId) return;
+    if(!fin){ stopRun(); return; }
+    await new Promise(r=>setTimeout(r, 450));
+  }
+  if(my===D.runId){ D.playing=false; setBig(); ST.done[D.key+'#'+D.vi]=1; save(); }
+}
+
+/* interactive turn */
+function speakTurn(line, n, my){
+  return new Promise(resolve=>{
+    const feed=document.getElementById('feed'); const em=feed.querySelector('.empty'); if(em) em.remove();
+    D.speakLine=line;
+    feed.insertAdjacentHTML('beforeend', `<div class="speak" id="spk"><div class="lbl">YOUR TURN — SAY IT</div>
+      <div class="txt" id="spkTxt">${tokHTML(line)}</div><div class="heard" id="heard"></div><div id="scoreEl"></div>
+      <div class="acts" id="acts"></div></div>`);
+    const spk=document.getElementById('spk'); spk.scrollIntoView({behavior:'smooth',block:'end'});
+    const acts=document.getElementById('acts');
+    const send=()=>{ spk.remove(); appendBubble(n); D.speakLine=null;
+      playLine(line, p=>setProg(n,p)).then(()=>setTimeout(()=>resolve(my===D.runId), 350)); };
+    if(my!==D.runId){ resolve(false); return; }
+    const hear=()=>{ playLine(line,null); };
+    const paint=(res)=>{
+      const tx=document.getElementById('spkTxt'); let ci=0;
+      tx.querySelectorAll('.w').forEach((w,k)=>{ const t=line.tok[+w.dataset.i]; });
+      // colour each character
+      let pos=0; const chars=[...line.t];
+      tx.querySelectorAll('.w .hz').forEach(hz=>{ const word=hz.textContent; let html='';
+        for(const c of word){ while(pos<chars.length && chars[pos]!==c) pos++; html+=`<span class="${res.ok.has(pos)?'ok':'bad'}">${esc(c)}</span>`; pos++; }
+        hz.innerHTML=html; });
+    };
+    const setActs=(state, res)=>{
+      if(state==='idle') acts.innerHTML = micAvailable()
+        ? `<button class="btn mic" id="mic">${UI.mic.replace('<svg','<svg width="18" height="18"')}Tap & speak</button><button class="btn" id="hearBtn">Hear it</button><button class="btn" id="skip">Skip</button>`
+        : `<button class="btn pri" id="said">I said it ✓</button><button class="btn" id="hearBtn">Hear it</button>`;
+      if(state==='live') acts.innerHTML = `<button class="btn mic live" id="stopMic">${UI.mic.replace('<svg','<svg width="18" height="18"')}Listening… tap to stop</button>`;
+      if(state==='graded') acts.innerHTML = res.score>=.8
+        ? `<button class="btn pri" id="sendBtn">Send ➤</button><button class="btn" id="mic">Again</button>`
+        : `<button class="btn mic" id="mic">${UI.mic.replace('<svg','<svg width="18" height="18"')}Try again</button><button class="btn" id="hearBtn">Hear it</button><button class="btn" id="sendBtn">Send anyway</button>`;
+      const g=id=>document.getElementById(id);
+      g('mic') && (g('mic').onclick=startMic);
+      g('stopMic') && (g('stopMic').onclick=()=>listen.stop && listen.stop());
+      g('hearBtn') && (g('hearBtn').onclick=hear);
+      g('skip') && (g('skip').onclick=send);
+      g('sendBtn') && (g('sendBtn').onclick=send);
+      g('said') && (g('said').onclick=()=>{ addTime(Math.min(8000, estDur(line.t)*1000)); send(); });
+    };
+    const startMic=()=>{
+      stopAudio();
+      const heard=document.getElementById('heard'); heard.innerHTML='Listening…'; document.getElementById('scoreEl').innerHTML='';
+      setActs('live');
+      listen(t=>{ heard.innerHTML='Heard: <b>'+esc(t)+'</b>'; })
+        .then(t=>{
+          if(!t){ heard.textContent='Nothing recognised — try again.'; setActs('idle'); return; }
+          const res=grade(line.t, t); paint(res);
+          const pct=Math.round(res.score*100);
+          document.getElementById('scoreEl').innerHTML=`<div class="score ${res.score>=.8?'good':'meh'}">${pct}% match ${res.score>=.95?'— 很好！':res.score>=.8?'— good':'— red characters weren\'t recognised'}</div>`;
+          setActs('graded', res);
+          if(res.score>=.95) setTimeout(()=>{ if(document.getElementById('spk')) send(); }, 900);
+        })
+        .catch(e=>{ heard.textContent=''; showToast(e.message||String(e)); setActs('idle'); });
+    };
+    setActs('idle');
+  });
+}
+
+/* word popover */
+function wordIcon(w){ return ICONS[WORD_ICON[w]] || (()=>{ for(const k in WORD_ICON) if(w.includes(k) && k.length>1) return ICONS[WORD_ICON[k]]; return ''; })(); }
+function showWord(t, el){
+  document.querySelectorAll('.w.sel').forEach(x=>x.classList.remove('sel')); el && el.classList.add('sel');
+  let p=document.getElementById('pop'); if(p) p.remove();
+  const ic=wordIcon(t.w);
+  document.body.insertAdjacentHTML('beforeend', `<div class="pop" id="pop">${ic?`<div class="pic">${ic}</div>`:''}<div><div><span class="hz">${esc(t.w)}</span><span class="py">${esc(t.p)}</span></div><div class="g">${esc(t.g)}</div></div><button class="say" id="say">${UI.speaker}</button></div>`);
+  document.getElementById('say').onclick=(e)=>{ e.stopPropagation(); speakWord(t.w); };
+  setTimeout(()=>document.addEventListener('click', function off(ev){ if(!ev.target.closest('#pop') && !ev.target.closest('.w.tap')){ const q=document.getElementById('pop'); q&&q.remove(); document.querySelectorAll('.w.sel').forEach(x=>x.classList.remove('sel')); document.removeEventListener('click',off);} }),0);
+}
+
+/* ---------- flashcards ---------- */
+let WDECK='core', WI=0, WFLIP=false;
+function dialogueVocab(){
+  const seen=new Map();
+  for(const c of DATA.categories) for(const d of c.dialogues) for(const v of d.versions) for(const l of v) for(const t of l.tok){
+    if(t.punct || seen.has(t.w) || /^[A-Za-z0-9]+$/.test(t.w)) continue;
+    if(/^[一二三四五六七八九十两百零]+(块|点|分钟|个|位|斤|楼|瓶|根)?$/.test(t.w)) continue;
+    if(['的','了','吗','吧','呢','啊','哦','嗯','我','你','您','是','在','有','好','这','那','也','都','就','很'].includes(t.w)) continue;
+    seen.set(t.w, {w:t.w, p:t.p, g:t.g, ex:l.tok, exT:l.t, exEn:''});
+  }
+  return [...seen.values()];
+}
+let VOCAB=null;
+function deck(){ return WDECK==='core' ? DATA.core : (VOCAB ||= dialogueVocab()); }
+function cardKey(c){ return WDECK+':'+c.w; }
+function orderDeck(){ // Leitner-ish: lower box first, then not-yet-seen
+  const d=deck().map((c,i)=>({c,i,b:(ST.cards[cardKey(c)]||{b:0}).b, t:(ST.cards[cardKey(c)]||{t:0}).t}));
+  d.sort((a,b)=>a.b-b.b || a.t-b.t || a.i-b.i); return d.map(x=>x.c);
+}
+let ORDER=null;
+function wordsHTML(){
+  ORDER ||= orderDeck(); if(WI>=ORDER.length) WI=0;
+  const c=ORDER[WI]; const ic=wordIcon(c.w); const known=Object.entries(ST.cards).filter(([k,v])=>k.startsWith(WDECK+':')&&v.b>=2).length;
+  return `<div class="words"><div class="wseg"><button data-deck="core" class="${WDECK==='core'?'on':''}">Core words & patterns</button><button data-deck="dlg" class="${WDECK==='dlg'?'on':''}">From dialogues</button></div>
+    <div class="card" id="card">${ic?`<div class="pic">${ic}</div>`:''}<div class="big-hz">${esc(c.w)}</div>
+    ${WFLIP?`<div class="cpy">${esc(c.p)}</div><div class="cg">${esc(c.g)}</div><div class="ex"><div class="txt" id="extxt">${c.ex.map((t,i)=>t.punct?`<span class="pu">${esc(t.w)}</span>`:`<span class="w tap" data-i="${i}"><span class="py">${esc(t.p)}</span><span class="hz">${esc(t.w)}</span></span>`).join('')}</div>${c.exEn?`<div class="exen">${esc(c.exEn)}</div>`:''}</div>`
+      :`<div class="hint">Tap to reveal</div>`}</div>
+    <div class="wacts">${WFLIP?`<button class="btn" id="again">Again</button><button class="btn" id="hearEx">${'Hear'}</button><button class="btn pri" id="got">Got it</button>`:`<button class="btn" id="hearW">Hear</button><button class="btn pri" id="flip">Show</button>`}</div>
+    <div class="wstat">${WI+1} / ${ORDER.length} · known: ${known}</div></div>`;
+}
+function bindWords(){
+  const c=ORDER[WI];
+  $app.querySelectorAll('[data-deck]').forEach(b=>b.onclick=()=>{ WDECK=b.dataset.deck; ORDER=null; WI=0; WFLIP=false; render(); });
+  const g=id=>document.getElementById(id);
+  g('card').onclick=(e)=>{ const w=e.target.closest('.w.tap'); if(w){ showWord(c.ex[+w.dataset.i], w); return; } if(!WFLIP){ WFLIP=true; render(); } };
+  g('flip') && (g('flip').onclick=()=>{ WFLIP=true; render(); });
+  g('hearW') && (g('hearW').onclick=()=>speakWord(c.w.replace('…','')));
+  g('hearEx') && (g('hearEx').onclick=()=>playLine({id:'ex_'+c.exT, t:c.exT, v:'f'}, null));
+  const mark=(up)=>{ const k=cardKey(c); const s=ST.cards[k]||{b:0,t:0}; s.b = up? Math.min(5,s.b+1) : 0; s.t=Date.now(); ST.cards[k]=s; save(); WI++; WFLIP=false; if(WI>=ORDER.length){ ORDER=null; WI=0; } render(); };
+  g('again') && (g('again').onclick=()=>mark(false));
+  g('got') && (g('got').onclick=()=>mark(true));
+}
+
+window.addEventListener('pagehide', ()=>save(true));
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ save(true); } });
+render();
+</script>
+</body>
+</html>
